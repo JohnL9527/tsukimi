@@ -1,0 +1,76 @@
+name: Build Tsukimi 25.05-rc1 Deb
+on:
+  push:
+    branches: [ 25.05-rc1 ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: debian-13
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev libmpv-dev \
+            libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gettext \
+            pkgconf build-essential dpkg-dev
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.85"
+
+      - name: Cache cargo
+        uses: swatinem/rust-cache@v2
+
+      - name: Compile Tsukimi
+        run: cargo build --release -p tsukimi
+
+      - name: Prepare deb structure
+        run: |
+          mkdir -p deb/usr/bin
+          mkdir -p deb/usr/share/applications
+          mkdir -p deb/usr/share/icons/hicolor/256x256/apps
+          mkdir -p deb/usr/share/doc/tsukimi
+          mkdir -p deb/DEBIAN
+
+          # 主程序
+          cp target/release/tsukimi deb/usr/bin/
+          chmod 755 deb/usr/bin/tsukimi
+
+          # 桌面启动文件
+          cat > deb/usr/share/applications/tsukimi.desktop <<EOF
+[Desktop Entry]
+Name=Tsukimi
+Comment=Jellyfin Client
+Exec=tsukimi
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;
+Icon=tsukimi
+EOF
+
+          # 复制项目自带图标
+          cp assets/icon.png deb/usr/share/icons/hicolor/256x256/apps/tsukimi.png
+
+          # Deb控制文件，依赖对应Debian13 trixie
+          cat > deb/DEBIAN/control <<EOF
+Package: tsukimi
+Version: 25.5.0~rc1
+Architecture: amd64
+Maintainer: Tsukimi Builder <builder@example.com>
+Description: Tsukimi - A simple third-party Jellyfin client for Linux
+Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base
+EOF
+
+      - name: Build deb package
+        run: dpkg-deb --build deb tsukimi_25.5.0-rc1_amd64.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsukimi-deb-25.05rc1
+          path: tsukimi_25.5.0-rc1_amd64.deb
