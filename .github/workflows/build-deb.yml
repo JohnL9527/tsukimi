@@ -16,13 +16,13 @@ jobs:
           sudo apt update
           sudo apt install -y libgtk-4-dev libadwaita-1-dev libmpv-dev \
             libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gettext \
-            pkgconf build-essential git meson ninja-build
+            pkgconf build-essential git meson ninja-build libwayland-dev
 
       - name: Build & install gtk4-layer-shell from source
         run: |
           git clone https://github.com/wmww/gtk4-layer-shell.git
           cd gtk4-layer-shell
-          meson setup build
+          meson setup build -Dintrospection=disabled
           ninja -C build
           sudo ninja -C build install
           sudo ldconfig
@@ -67,9 +67,6 @@ jobs:
           echo 'Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base' >> deb/DEBIAN/control
           echo 'Description: Tsukimi - Simple Jellyfin client for Linux' >> deb/DEBIAN/control
           echo ' Tsukimi is a native Linux client for the Jellyfin media server.' >> deb/DEBIAN/control
-
-          echo "==== DEBUG control ===="
-          cat deb/DEBIAN/control
 
       - name: Build deb package
         run: dpkg-deb --build --root-owner-group deb tsukimi_25.5.0-rc1_amd64.deb
