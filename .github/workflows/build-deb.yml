@@ -1,4 +1,4 @@
-name: Build Tsukimi 25.05-rc1 Deb
+name: Build Tsukimi Deb
 on:
   push:
     branches: [ 25.05-rc1 ]
@@ -55,14 +55,15 @@ jobs:
           echo 'Version: 25.5.0~rc1' >> deb/DEBIAN/control
           echo 'Architecture: amd64' >> deb/DEBIAN/control
           echo 'Maintainer: Tsukimi Builder <builder@example.com>' >> deb/DEBIAN/control
-          echo 'Description: Tsukimi - A simple third-party Jellyfin client for Linux' >> deb/DEBIAN/control
           echo 'Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base' >> deb/DEBIAN/control
+          echo 'Description: Tsukimi - Simple Jellyfin client for Linux' >> deb/DEBIAN/control
+          echo ' Tsukimi is a native Linux client for the Jellyfin media server.' >> deb/DEBIAN/control
 
       - name: Build deb package
-        run: dpkg-deb --build deb tsukimi_25.5.0-rc1_amd64.deb
+        run: dpkg-deb --build --root-owner-group deb tsukimi_25.5.0-rc1_amd64.deb
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tsukimi-deb-25.05rc1
+          name: tsukimi-deb
           path: tsukimi_25.5.0-rc1_amd64.deb
