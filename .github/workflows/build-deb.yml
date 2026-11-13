@@ -49,7 +49,8 @@ jobs:
           echo 'Categories=AudioVideo;Player;' >> deb/usr/share/applications/tsukimi.desktop
           echo 'Icon=tsukimi' >> deb/usr/share/applications/tsukimi.desktop
 
-          cp assets/icon.png deb/usr/share/icons/hicolor/256x256/apps/tsukimi.png
+          # 这里是你找到的主程序图标
+          cp resources/icons/moe.tsuna.tsukimi.png deb/usr/share/icons/hicolor/256x256/apps/tsukimi.png
 
           echo 'Package: tsukimi' > deb/DEBIAN/control
           echo 'Version: 25.5.0~rc1' >> deb/DEBIAN/control
@@ -58,6 +59,9 @@ jobs:
           echo 'Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base' >> deb/DEBIAN/control
           echo 'Description: Tsukimi - Simple Jellyfin client for Linux' >> deb/DEBIAN/control
           echo ' Tsukimi is a native Linux client for the Jellyfin media server.' >> deb/DEBIAN/control
+
+          echo "===== DEBUG: print DEBIAN/control ====="
+          cat deb/DEBIAN/control
 
       - name: Build deb package
         run: dpkg-deb --build --root-owner-group deb tsukimi_25.5.0-rc1_amd64.deb
