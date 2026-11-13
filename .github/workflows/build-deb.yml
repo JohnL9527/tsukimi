@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: debian-13
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -14,7 +14,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt update
-          sudo apt install -y libgtk-4-dev libadwaita-1-dev libmpv-dev \
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev libmpv-dev libgtk4-layer-shell-dev \
             libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gettext \
             pkgconf build-essential dpkg-dev
 
@@ -37,34 +37,26 @@ jobs:
           mkdir -p deb/usr/share/doc/tsukimi
           mkdir -p deb/DEBIAN
 
-          # 主程序
           cp target/release/tsukimi deb/usr/bin/
           chmod 755 deb/usr/bin/tsukimi
 
-          # 桌面启动文件
-          cat > deb/usr/share/applications/tsukimi.desktop <<EOF
-[Desktop Entry]
-Name=Tsukimi
-Comment=Jellyfin Client
-Exec=tsukimi
-Terminal=false
-Type=Application
-Categories=AudioVideo;Player;
-Icon=tsukimi
-EOF
+          echo '[Desktop Entry]' > deb/usr/share/applications/tsukimi.desktop
+          echo 'Name=Tsukimi' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Comment=Jellyfin Client' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Exec=tsukimi' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Terminal=false' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Type=Application' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Categories=AudioVideo;Player;' >> deb/usr/share/applications/tsukimi.desktop
+          echo 'Icon=tsukimi' >> deb/usr/share/applications/tsukimi.desktop
 
-          # 复制项目自带图标
           cp assets/icon.png deb/usr/share/icons/hicolor/256x256/apps/tsukimi.png
 
-          # Deb控制文件，依赖对应Debian13 trixie
-          cat > deb/DEBIAN/control <<EOF
-Package: tsukimi
-Version: 25.5.0~rc1
-Architecture: amd64
-Maintainer: Tsukimi Builder <builder@example.com>
-Description: Tsukimi - A simple third-party Jellyfin client for Linux
-Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base
-EOF
+          echo 'Package: tsukimi' > deb/DEBIAN/control
+          echo 'Version: 25.5.0~rc1' >> deb/DEBIAN/control
+          echo 'Architecture: amd64' >> deb/DEBIAN/control
+          echo 'Maintainer: Tsukimi Builder <builder@example.com>' >> deb/DEBIAN/control
+          echo 'Description: Tsukimi - A simple third-party Jellyfin client for Linux' >> deb/DEBIAN/control
+          echo 'Depends: libgtk-4-1, libadwaita-1-0, libmpv1, gstreamer1.0-plugins-base' >> deb/DEBIAN/control
 
       - name: Build deb package
         run: dpkg-deb --build deb tsukimi_25.5.0-rc1_amd64.deb
