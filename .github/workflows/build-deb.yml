@@ -1,0 +1,47 @@
+name: Build Tsukimi 0.21.0 Deb
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        # 切换到 0.21.0 tag，如果你本身仓库已经切好可以删掉这行
+        run: git checkout 0.21.0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev libmpv-dev \
+            libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gettext \
+            pkgconf build-essential git meson ninja-build devscripts debhelper
+
+      - name: Install Rust toolchain (>=1.85)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.85"
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+
+      - name: Meson configure
+        run: meson setup build -Dbuildtype=release
+
+      - name: Compile
+        run: meson compile -C build
+
+      - name: Install into staging directory for packaging
+        run: meson install -C build --destdir=debian/tmp
+
+      - name: Build Debian package
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Upload deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsukimi-0.21.0-amd64
+          path: ../tsukimi_*.deb
